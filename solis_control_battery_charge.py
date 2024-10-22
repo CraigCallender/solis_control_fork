@@ -100,11 +100,10 @@ async def set_battery_charge_times(token, inverterId: str, config, times):
     headers = prepare_header(config, body, CONTROL_URL)
     headers['token']= token
     response = await session.post("https://www.soliscloud.com:13333"+CONTROL_URL, data = body, headers = headers)
-    log.warning("solis_control_battery_charge.py response:"+response.text())
+    log.warning("solis_control_battery_charge.py response:" + response.text())
     
 @service   
-async def solis_control_battery_charge(config=None,days=None): 
+async def solis_control_battery_charge(config=None, settings=None): 
     inverterId= getInverterList(config)
     token = login(config)
-    set_battery_charge_times(token, inverterId, config, days)
-    
+    set_battery_charge_times(token, inverterId, config, settings)

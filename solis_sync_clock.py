@@ -5,7 +5,7 @@ import base64
 import json
 import re
 from http import HTTPStatus
-from datetime import datetime
+from datetime import datetime, timezone
 
 VERB = "POST"
 LOGIN_URL = '/v2/api/login'
@@ -88,10 +88,10 @@ async def set_updated_time(token, inverterId: str, config, currentTime: datetime
     headers = prepare_header(config, body, CONTROL_URL)
     headers['token']= token
     response = await session.post("https://www.soliscloud.com:13333"+CONTROL_URL, data = body, headers = headers)
-    log.warning("solis_sync_clock.py response:"+response.text())
+    log.warning("solis_sync_clock.py response:" + response.text())
    
 @service   
-async def solis_sync_clock(config=None,days=None): 
+async def solis_sync_clock(config=None): 
     inverterId= getInverterList(config)
     token = login(config)
     set_updated_time(token, inverterId, config, datetime.now())
