@@ -24,7 +24,6 @@ def digest(body: str) -> str:
 def passwordEncode(password: str) -> str:
     md5Result = hashlib.md5(password.encode('utf-8')).hexdigest()
     return md5Result
-    
 
 def prepare_header(config: dict[str,str], body: str, canonicalized_resource: str) -> dict[str, str]:
     content_md5 = digest(body)
@@ -55,46 +54,6 @@ def prepare_header(config: dict[str,str], body: str, canonicalized_resource: str
     }
     return header
     
-def control_body(inverterId, chargeSettings) -> str:
-    body = '{"inverterId":"'+inverterId+'", "cid":"103","value":"'
-    for index, time in enumerate(chargeSettings):
-        body = body \
-          +str(time['chargeCurrent']) \
-          +"," \
-          +str(time['dischargeCurrent']) \
-          +"," \
-          +str(time['chargeStartTime']) \
-          +"," \
-          +str(time['chargeEndTime']) \
-          +"," \
-          +str(time['dischargeStartTime']) \
-          +"," \
-          +str(time['dischargeEndTime'])
-        if (index !=2):
-            body = body+","
-    return body+'"}'
-
-def control_time_body(inverterId: str, currentTime: datetime) -> str:
-    body = '{"inverterId":"'+ inverterId + '", "cid":"56", "value":"' + \
-        currentTime.strftime('%Y-%m-%d %H:%M:%S') + \
-        + '"}'
-    
-    return body
-
-async def set_control_times(token, inverterId: str, config, times):
-    body = control_body(inverterId, times)
-    headers = prepare_header(config, body, CONTROL_URL)
-    headers['token']= token
-    response = await session.post("https://www.soliscloud.com:13333"+CONTROL_URL, data = body, headers = headers)
-    log.warning("solis response:"+response.text())
-
-async def set_updated_time(token, inverterId: str, config, currentTime: datetime):
-    body = control_time_body(inverterId, currentTime)
-    headers = prepare_header(config, body, CONTROL_URL)
-    headers['token']= token
-    response = await session.post("https://www.soliscloud.com:13333"+CONTROL_URL, data = body, headers = headers)
-    log.warning("solis response:"+response.text())
-    
 async def login(config):
     body = '{"userInfo":"'+config['username']+'","password":"'+ passwordEncode(config['password'])+'"}'
     header = prepare_header(config, body, LOGIN_URL)
@@ -119,11 +78,4 @@ async def getInverterList(config):
     for record in inverterList['data']['page']['records']:
       inverterId = record.get('id')
     return inverterId
-   
-@service   
-async def solis_control(config=None,days=None): 
-    inverterId= getInverterList(config)
-    token = login(config)
-    set_control_times(token, inverterId, config, days)
-    set_updated_time(token, inverterId, config, datetime.now())
     
