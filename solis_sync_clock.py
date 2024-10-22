@@ -5,26 +5,21 @@ import base64
 import json
 import re
 from http import HTTPStatus
-from datetime import datetime, timezone
+from datetime import datetime
 
 VERB = "POST"
-
 LOGIN_URL = '/v2/api/login'
-
 CONTROL_URL= '/v2/api/control'
-
 INVERTER_URL= '/v1/api/inverterList'
 
 session = async_get_clientsession(hass)
 
-
 def digest(body: str) -> str:
     return base64.b64encode(hashlib.md5(body.encode('utf-8')).digest()).decode('utf-8')
-    
+
 def passwordEncode(password: str) -> str:
     md5Result = hashlib.md5(password.encode('utf-8')).hexdigest()
     return md5Result
-    
 
 def prepare_header(config: dict[str,str], body: str, canonicalized_resource: str) -> dict[str, str]:
     content_md5 = digest(body)
@@ -55,20 +50,6 @@ def prepare_header(config: dict[str,str], body: str, canonicalized_resource: str
     }
     return header
 
-def control_time_body(inverterId: str, currentTime: datetime) -> str:
-    body = '{"inverterId":"'+ inverterId + '", "cid":"56", "value":"' + \
-        currentTime.strftime('%Y-%m-%d %H:%M:%S') + \
-        + '"}'
-    
-    return body
-
-async def set_updated_time(token, inverterId: str, config, currentTime: datetime):
-    body = control_time_body(inverterId, currentTime)
-    headers = prepare_header(config, body, CONTROL_URL)
-    headers['token']= token
-    response = await session.post("https://www.soliscloud.com:13333"+CONTROL_URL, data = body, headers = headers)
-    log.warning("solis response:"+response.text())
-    
 async def login(config):
     body = '{"userInfo":"'+config['username']+'","password":"'+ passwordEncode(config['password'])+'"}'
     header = prepare_header(config, body, LOGIN_URL)
@@ -83,7 +64,7 @@ async def login(config):
         result = response.text()
     
     return result["csrfToken"]
-    
+
 async def getInverterList(config):
     body = '{"stationId":"'+config['plantId']+'"}'
     header = prepare_header(config, body, INVERTER_URL)
@@ -93,6 +74,21 @@ async def getInverterList(config):
     for record in inverterList['data']['page']['records']:
       inverterId = record.get('id')
     return inverterId
+
+
+def control_time_body(inverterId: str, currentTime: datetime) -> str:
+    body = '{"inverterId":"'+ inverterId + '", "cid":"56", "value":"' + \
+        currentTime.strftime('%Y-%m-%d %H:%M:%S') + \
+        + '"}'
+    
+    return body
+
+async def set_updated_time(token, inverterId: str, config, currentTime: datetime):
+    body = control_time_body(inverterId, currentTime)
+    headers = prepare_header(config, body, CONTROL_URL)
+    headers['token']= token
+    response = await session.post("https://www.soliscloud.com:13333"+CONTROL_URL, data = body, headers = headers)
+    log.warning("solis_sync_clock.py response:"+response.text())
    
 @service   
 async def solis_sync_clock(config=None,days=None): 

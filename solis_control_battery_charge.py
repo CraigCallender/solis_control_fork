@@ -8,23 +8,19 @@ from http import HTTPStatus
 from datetime import datetime, timezone
 
 VERB = "POST"
-
 LOGIN_URL = '/v2/api/login'
-
 CONTROL_URL= '/v2/api/control'
-
 INVERTER_URL= '/v1/api/inverterList'
 
 session = async_get_clientsession(hass)
 
-
 def digest(body: str) -> str:
     return base64.b64encode(hashlib.md5(body.encode('utf-8')).digest()).decode('utf-8')
-    
+
 def passwordEncode(password: str) -> str:
     md5Result = hashlib.md5(password.encode('utf-8')).hexdigest()
     return md5Result
-    
+
 def prepare_header(config: dict[str,str], body: str, canonicalized_resource: str) -> dict[str, str]:
     content_md5 = digest(body)
     content_type = "application/json"
@@ -53,8 +49,34 @@ def prepare_header(config: dict[str,str], body: str, canonicalized_resource: str
         "Authorization":authorization
     }
     return header
+
+async def login(config):
+    body = '{"userInfo":"'+config['username']+'","password":"'+ passwordEncode(config['password'])+'"}'
+    header = prepare_header(config, body, LOGIN_URL)
+    response = await session.post("https://www.soliscloud.com:13333"+LOGIN_URL, data = body, headers = header)
+    status = response.status
+    result = ""
+    r = json.loads(re.sub(r'("(?:\\?.)*?")|,\s*([]}])', r'\1\2', response.text()))
+    if status == HTTPStatus.OK:
+        result = r
+    else:
+        log.warning(status)
+        result = response.text()
     
-def control_body(inverterId, chargeSettings) -> str:
+    return result["csrfToken"]
+
+async def getInverterList(config):
+    body = '{"stationId":"'+config['plantId']+'"}'
+    header = prepare_header(config, body, INVERTER_URL)
+    response = await session.post("https://www.soliscloud.com:13333"+INVERTER_URL, data = body, headers = header)
+    inverterList = response.json()
+    inverterId = ""
+    for record in inverterList['data']['page']['records']:
+      inverterId = record.get('id')
+    return inverterId
+
+
+def control_battery_charge_body(inverterId, chargeSettings) -> str:
     body = '{"inverterId":"'+inverterId+'", "cid":"103","value":"'
     for index, time in enumerate(chargeSettings):
         body = body \
@@ -73,41 +95,16 @@ def control_body(inverterId, chargeSettings) -> str:
             body = body+","
     return body+'"}'
 
-async def set_control_times(token, inverterId: str, config, times):
-    body = control_body(inverterId, times)
+async def set_battery_charge_times(token, inverterId: str, config, times):
+    body = control_battery_charge_body(inverterId, times)
     headers = prepare_header(config, body, CONTROL_URL)
     headers['token']= token
     response = await session.post("https://www.soliscloud.com:13333"+CONTROL_URL, data = body, headers = headers)
-    log.warning("solis response:"+response.text())
+    log.warning("solis_control_battery_charge.py response:"+response.text())
     
-async def login(config):
-    body = '{"userInfo":"'+config['username']+'","password":"'+ passwordEncode(config['password'])+'"}'
-    header = prepare_header(config, body, LOGIN_URL)
-    response = await session.post("https://www.soliscloud.com:13333"+LOGIN_URL, data = body, headers = header)
-    status = response.status
-    result = ""
-    r = json.loads(re.sub(r'("(?:\\?.)*?")|,\s*([]}])', r'\1\2', response.text()))
-    if status == HTTPStatus.OK:
-        result = r
-    else:
-        log.warning(status)
-        result = response.text()
-    
-    return result["csrfToken"]
-    
-async def getInverterList(config):
-    body = '{"stationId":"'+config['plantId']+'"}'
-    header = prepare_header(config, body, INVERTER_URL)
-    response = await session.post("https://www.soliscloud.com:13333"+INVERTER_URL, data = body, headers = header)
-    inverterList = response.json()
-    inverterId = ""
-    for record in inverterList['data']['page']['records']:
-      inverterId = record.get('id')
-    return inverterId
-   
 @service   
 async def solis_control_battery_charge(config=None,days=None): 
     inverterId= getInverterList(config)
     token = login(config)
-    set_control_times(token, inverterId, config, days)
+    set_battery_charge_times(token, inverterId, config, days)
     
