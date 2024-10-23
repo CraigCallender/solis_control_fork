@@ -79,7 +79,7 @@ async def getInverterList(config):
 
 def control_power_limit_body(inverterId, power_limit_settings) -> str:
     body = '{"inverterId":"' +inverterId +'", "cid":"15","value":"' \
-      + str(int(power_limit_settings['power_limit_percentage'])) + '", "yuanzhi":"0"}'
+      + str(int(power_limit_settings['powerLimitPercentage'])) + '", "yuanzhi":"0"}'
     
     return body
 
