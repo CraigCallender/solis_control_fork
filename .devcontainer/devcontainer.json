@@ -22,7 +22,8 @@
 				"ms-python.python",
 				"ms-python.vscode-pylance",
 				"ms-python.debugpy",
-				"charliermarsh.ruff"
+				"charliermarsh.ruff",
+				"github.vscode-github-actions"
 			]
 		}
 	},
