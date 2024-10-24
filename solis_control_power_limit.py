@@ -81,11 +81,11 @@ def control_power_limit_body(inverterId, power_limit_settings) -> str:
 
 
 async def set_power_limit(token, inverterId: str, config, power_limit_settings):
-    body = set_power_limit(inverterId, power_limit_settings)
+    body = control_power_limit_body(inverterId, power_limit_settings)
     headers = prepare_header(config, body, CONTROL_URL)
     headers['token'] = token
-    response = await session.post('https://www.soliscloud.com:13333' + CONTROL_URL, data=body, headers=headers)
-    log.warning('solis_control_grid_feed.py - enabled response:' + response.text())  # noqa: F821
+    # response = await session.post('https://www.soliscloud.com:13333' + CONTROL_URL, data=body, headers=headers)
+    # log.warning('solis_control_grid_feed.py - enabled response:' + response.text())  # noqa: F821
 
 
 @service  # noqa: F821
