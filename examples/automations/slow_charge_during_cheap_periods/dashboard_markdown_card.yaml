@@ -14,7 +14,7 @@ content: |
   <table width="100%">
     <tr>
       <th valign='top' align='left'>Next Charge Current</th>
-      <td>{{ watts_hours_needed }} @ {{ max(amp_hours_needed | round(method="ceil"), 1) }}Aph</br>
+      <td>{{ watts_hours_needed }} @ {{ max(amp_hours_needed | round(method="ceil"), 1) }}Ah</br>
         for {{ charge_hours }} hours</td>
     </tr>
   </table> 
