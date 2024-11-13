@@ -1,0 +1,22 @@
+alias: Solis - Sync Clock
+description: "Sync the clock on your Solis inverter to the same time as your HomeAssistant."
+triggers:
+  - hours: /3 # Trigger on the 25th second of every third hour
+    seconds: "25"
+    trigger: time_pattern
+  - trigger: time # Trigger at 01:00:01 - this is helpful for Autumn daylight savings time.
+    at: "01:00:01"
+  - trigger: time # Trigger at 03:00:01 - this is helpful for Spring daylight savings time.
+    at: "03:00:01
+conditions: []
+actions:
+  - action: pyscript.solis_sync_clock
+    metadata: {}
+    data:
+      config:
+        secret: <<API KEY>>
+        key_id: "<<KEY ID>>"
+        username: <<EMAIL_ADDRESS>>
+        password: <<PASSWORD>>
+        plantId: "<<PLAND_ID>>"
+mode: single
