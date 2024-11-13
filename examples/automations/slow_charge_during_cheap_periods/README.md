@@ -1,5 +1,5 @@
 # Automation: Solis: Slow Charge During Cheap Periods
-This automation will run every 5 minutes and set the charge rate and times for cheap periods as configured.  This example is configured for the Octopus Cozy tariff which has three cheap periods of:
+This automation will run every 5 minutes and set the charge rate and times for cheap periods as configured.  Battery health is preserved by using the slowest charge rate possible to achieve the maximum charge by the end of the rate.  This example is configured for the Octopus Cozy tariff which has three cheap periods of:
 - 04:00 - 07:00
 - 13:00 - 16:00
 - 22:00 - 00:00
