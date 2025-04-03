@@ -1,0 +1,47 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Environment files
+.env
+
+# Virtual environment directories
+venv/
+env/
+.venv/
+
+# Pytest cache
+.pytest_cache/
+.cache/
+*.pytest_cache/
+
+# VSCode settings
+.vscode/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.DS_Store
+
+# Byte-compiled files
+*.pyc
+
+# Coverage reports
+.coverage
+htmlcov/
+*.cover
+
+# Ruff cache
+.ruff_cache/
+
+# Node modules (if applicable)
+node_modules/
+
+# Generated files
+*.lock
+*.pid
